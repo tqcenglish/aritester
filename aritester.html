@@ -436,7 +436,7 @@ function updateDeviceView( device_state ) {
 // ari functions
 
 // http request
-function httpSend(act,cmd, body) {
+function httpSend(act,cmd, body, callback) {
   var req = new XMLHttpRequest();
   var url = "http://"+tester.ip+"/ari/"+cmd;
   console.log( "requesting: " + act + " " + url );
@@ -451,6 +451,9 @@ function httpSend(act,cmd, body) {
     if ( statusType == 4 || statusType == 5 )
         msgClass = "errormsg";
     append( req.status.toString() + " " + req.statusText + req.responseText, msgClass );
+    if(callback){
+      callback(req.responseText);
+    }
   });
   req.addEventListener("error", function(){
     console.log( 'http ' + act + ' error' );
@@ -465,6 +468,15 @@ function subscribe() {
 
   // subscribe for all events from channels,endpoint,bridge and devices source
   httpSend( 'POST', 'applications/'+tester.app+'/subscription?eventSource=channel:,endpoint:,bridge:,deviceState:', null );
+}
+
+function channels() {
+  httpSend('GET', 'channels', null, (data) => {
+    let chanels = JSON.parse(data);
+    chanels.forEach(chanel => {
+      addChannelToView(chanel);
+    });
+  });
 }
 
 // find a channel in an event and return a descriptor of the channel
@@ -529,7 +541,7 @@ function parseEvent(json) {
 }
 
 function doLogin() {
-  var ip = location.host;
+  var ip = document.getElementById("host").value || location.host;
   var user = document.getElementById("username").value;
   var psw = document.getElementById("secret").value;
   var app = document.getElementById("application").value;
@@ -559,6 +571,9 @@ function doLogin() {
   service.onerror = function(){
     append("Connection error", "errormsg");
   }
+
+  // init chanel
+  channels();
 }
 
 function doLogoff() {
@@ -840,16 +855,20 @@ function doSendMessage() {
     <div  class="gridalign">
     <ul>
       <li>
+        <div><label for="host">Host:</label></div>
+        <div><input id="host" autocomplete="host"/></div>
+      </li>
+      <li>
         <div><label for="username">Username:</label></div>
-        <div><input id="username" autocomplete="username"/></div>
+        <div><input id="username" autocomplete="username"/ value="user"></div>
       </li>
       <li>
         <div><label for="secret">Secret:</label></div>
-        <div><input type="password" id="secret" autocomplete="current-password"/></div>
+        <div><input type="password" id="secret" autocomplete="current-password"/ value="abcd"></div>
       </li>
       <li>
         <div><label for="application">Application:</label></div>
-        <div><input id="application"/></div>
+        <div><input id="application"/ value="chatgpt"></div>
       </li>
     </ul>
     </div>
