@@ -59,3 +59,5 @@ Twitter: @DPallastrelli
 ARI tester is released under the [MIT license][MIT].
 
 [MIT]:LICENSE
+
+![demo](ARI.png)
